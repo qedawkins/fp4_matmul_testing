@@ -110,13 +110,17 @@ util.func private @scaled_f4_to_f32_impl(%arg0: tensor<?x?x?xi8>, %arg1: tensor<
 util.func public @scaled_f4_to_f32(%arg0: tensor<?x?xi8>, %arg1: tensor<?x?xi8>, %block_size: i64) -> tensor<?x?xf32> {
   %c0 = arith.constant 0 : index
   %c1 = arith.constant 1 : index
+  %c2 = arith.constant 2 : index
   %o = tensor.dim %arg0, %c0 : tensor<?x?xi8>
   %i = tensor.dim %arg0, %c1 : tensor<?x?xi8>
-  %block_index = arith.index_cast %block_size : index to i64
-  %i_div = arith.divui %i, %block_index : index
-  %unblocked = flow.tensor.reshape %arg0 : tensor<?x?xi8>{%o, %i} -> tensor<?x?x?xi8>{%o, %i_div, %b}
-  %0 = util.call(%unblocked, %arg1) : (tensor<?x?x?xi8>, tensor<?x?xi8>) -> tensor<?x?xf32>
-  util.return %0 : tensor<?x?xf32>
+  %block_index = arith.index_cast %block_size : i64 to index
+  %block_over_2 = arith.divui %block_index, %c2 : index
+  %i_div = arith.divui %i, %block_over_2 : index
+  %unblocked = flow.tensor.reshape %arg0 : tensor<?x?xi8>{%o, %i} -> tensor<?x?x?xi8>{%o, %i_div, %block_over_2}
+  %0 = util.call @scaled_f4_to_f32_impl(%unblocked, %arg1) : (tensor<?x?x?xi8>, tensor<?x?xi8>) -> tensor<?x?x?xf32>
+  %i_times_2 = arith.muli %i, %c2 : index
+  %blocked = flow.tensor.reshape %0 : tensor<?x?x?xf32>{%o, %i_div, %block_index} -> tensor<?x?xf32>{%o, %i_times_2}
+  util.return %blocked : tensor<?x?xf32>
 }
 
 util.func public @avoid_nan_scale(%arg0: tensor<?x?xi8>) -> tensor<?x?xi8> {

@@ -1,3 +1,4 @@
+builtin.module @conversions {
 
 util.func private @scaled_f4_to_f32_impl(%arg0: tensor<?x?x?xi8>, %arg1: tensor<?x?xi8>) -> tensor<?x?x?xf32> {
   %c0 = arith.constant 0 : index
@@ -137,11 +138,13 @@ util.func public @avoid_nan_scale(%arg0: tensor<?x?xi8>) -> tensor<?x?xi8> {
     iterator_types = ["parallel", "parallel"]}
     ins(%arg0 : tensor<?x?xi8>) outs(%empty : tensor<?x?xi8>) {
   ^bb0(%scale: i8, %out: i8):
-    %c7F = arith.constant 0x7F : i8
-    %cFF = arith.constant 0xFF : i8
-    %sff = arith.cmpi eq, %scale, %cFF : i8
-    %fixed_scale = arith.select %sff, %scale, %c7F : i8
+    %c6 = arith.constant 6 : i8
+    %c127 = arith.constant 127 : i8
+    %upper = arith.shrui %scale, %c6 : i8
+    %fixed_scale = arith.addi %upper, %c127 : i8
     linalg.yield %fixed_scale : i8
   } -> tensor<?x?xi8>
   util.return %cvt : tensor<?x?xi8>
+}
+
 }

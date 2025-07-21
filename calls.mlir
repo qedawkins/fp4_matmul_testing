@@ -40,8 +40,8 @@ func.func @matmul() attributes {
 
   %result = call @module.matmul(%lhs, %rhs, %lhs_scale_fixed, %rhs_scale_fixed) : (!hal.buffer_view, !hal.buffer_view, !hal.buffer_view, !hal.buffer_view) -> !hal.buffer_view
 
-  %lhs_f32 = call @conversions.scaled_f4_to_f32(%lhs, %lhs_scale, %block_size) : (!hal.buffer_view, !hal.buffer_view, i64) -> !hal.buffer_view
-  %rhs_f32 = call @conversions.scaled_f4_to_f32(%rhs, %rhs_scale, %block_size) : (!hal.buffer_view, !hal.buffer_view, i64) -> !hal.buffer_view
+  %lhs_f32 = call @conversions.scaled_f4_to_f32(%lhs, %lhs_scale_fixed, %block_size) : (!hal.buffer_view, !hal.buffer_view, i64) -> !hal.buffer_view
+  %rhs_f32 = call @conversions.scaled_f4_to_f32(%rhs, %rhs_scale_fixed, %block_size) : (!hal.buffer_view, !hal.buffer_view, i64) -> !hal.buffer_view
 
   %transpose_rhs = arith.constant 1 : i32
   %acc = util.null : !hal.buffer_view

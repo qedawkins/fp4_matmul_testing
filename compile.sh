@@ -22,7 +22,7 @@ iree-compile conversions.mlir \
 
 iree-e2e-matmul-test --device=hip \
   --module=tmp/matmul.vmfb \
-  --module=tmp/calls.vmfb \
   --module=tmp/conversions.vmfb \
+  --module=tmp/calls.vmfb \
   --require_exact_results=true \
   --acceptable_fp_delta=1e-04

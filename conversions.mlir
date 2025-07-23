@@ -147,4 +147,24 @@ util.func public @avoid_nan_scale(%arg0: tensor<?x?xi8>) -> tensor<?x?xi8> {
   util.return %cvt : tensor<?x?xi8>
 }
 
+util.func public @oneify(%arg0: tensor<?x?xi8>) -> tensor<?x?xi8> {
+  %c0 = arith.constant 0 : index
+  %c1 = arith.constant 1 : index
+  %o = tensor.dim %arg0, %c0 : tensor<?x?xi8>
+  %i = tensor.dim %arg0, %c1 : tensor<?x?xi8>
+
+  %empty = tensor.empty(%o, %i) : tensor<?x?xi8>
+  %cvt = linalg.generic {
+    indexing_maps = [
+      affine_map<(d0, d1) -> (d0, d1)>,
+      affine_map<(d0, d1) -> (d0, d1)>],
+    iterator_types = ["parallel", "parallel"]}
+    ins(%arg0 : tensor<?x?xi8>) outs(%empty : tensor<?x?xi8>) {
+  ^bb0(%in: i8, %out: i8):
+    %c1s = arith.constant 0x22 : i8
+    linalg.yield %c1s : i8
+  } -> tensor<?x?xi8>
+  util.return %cvt : tensor<?x?xi8>
+}
+
 }

@@ -8,24 +8,30 @@ func.func private @matmul_test.check_matmul_results(%device: !hal.device, %m: i6
 
 func.func private @conversions.scaled_f4_to_f32(%arg0: !hal.buffer_view, %arg1: !hal.buffer_view, %block_size: i64) -> !hal.buffer_view
 func.func private @conversions.avoid_nan_scale(%arg0: !hal.buffer_view) -> !hal.buffer_view
+func.func private @conversions.oneify(%arg0: !hal.buffer_view) -> !hal.buffer_view
 
 func.func private @module.matmul(%lhs: !hal.buffer_view, %rhs: !hal.buffer_view, %lhs_scales: !hal.buffer_view, %rhs_scales: !hal.buffer_view) -> !hal.buffer_view
 
 func.func @matmul() attributes {
   iree.reflection = {description = "Matmul shape (MxKxN): 1024x1024x1024"}
 } {
-  %m = arith.constant 1024 : i64
-  %k = arith.constant 1024 : i64
-  %n = arith.constant 1024 : i64
-  %k_outer = arith.constant 32 : i64
-  %k_packed = arith.constant 512 : i64
+  %c2 = arith.constant 2 : i64
+
+  %m = arith.constant 64 : i64
+  %k = arith.constant 16384 : i64
+  %n = arith.constant 53248 : i64
   %block_size = arith.constant 32 : i64
+
+  %k_packed = arith.divui %k, %c2 : i64
+  %k_outer = arith.divui %k, %block_size : i64
+
   %device_index = arith.constant 0 : index
   %device = hal.devices.get %device_index : !hal.device
 
   %byte_type = hal.element_type<i8> : i32
   %lhs_seed = arith.constant 5 : i32
   %lhs = call @matmul_test.generate_random_matrix(%device, %m, %k_packed, %byte_type, %lhs_seed) : (!hal.device, i64, i64, i32, i32) -> !hal.buffer_view
+  // %lhs = call @conversions.oneify(%lhs_0) : (!hal.buffer_view) -> !hal.buffer_view
 
   %lhs_scale_seed = arith.constant 6 : i32
   %lhs_scale = call @matmul_test.generate_random_matrix(%device, %m, %k_outer, %byte_type, %lhs_scale_seed) : (!hal.device, i64, i64, i32, i32) -> !hal.buffer_view
@@ -33,6 +39,7 @@ func.func @matmul() attributes {
 
   %rhs_seed = arith.constant 7 : i32
   %rhs = call @matmul_test.generate_random_matrix(%device, %n, %k_packed, %byte_type, %rhs_seed) : (!hal.device, i64, i64, i32, i32) -> !hal.buffer_view
+  // %rhs = call @conversions.oneify(%rhs_0) : (!hal.buffer_view) -> !hal.buffer_view
 
   %rhs_scale_seed = arith.constant 8 : i32
   %rhs_scale = call @matmul_test.generate_random_matrix(%device, %n, %k_outer, %byte_type, %rhs_scale_seed) : (!hal.device, i64, i64, i32, i32) -> !hal.buffer_view

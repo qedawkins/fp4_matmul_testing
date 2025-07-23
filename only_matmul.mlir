@@ -1,6 +1,7 @@
 // Quantized mxfp4 example with:
-// M = 1024
-// N = 1024
+// M = 64
+// N = 53248
+// K = 16384
 // Block size = 32
 
 !lhs = f4E2M1FN
@@ -9,27 +10,22 @@
 
 !scale_ty = f8E8M0FNU
 
-!Bin_size = tensor<1024x512xi8>
-!Ain_size = tensor<1024x512xi8>
-!out_cast_size = tensor<1024x32x16xi8>
+!Ain_size = tensor<64x8192xi8>
+!Bin_size = tensor<53248x8192xi8>
 
 // Input types.  M    Ko Kb
-!A_size = tensor<1024x32x32x!lhs>
+!A_size = tensor<64x512x32x!lhs>
 //               N    Ko Kb
-!B_size = tensor<1024x32x32x!rhs>
+!B_size = tensor<53248x512x32x!rhs>
 //               M    N
-!C_size = tensor<1024x1024xf32>
-// Expand N for scaling for the next matmul.
-!out_C_size = tensor<1024x32x32xf32>
-// Truncate to the quantized type.
-!out_size = tensor<1024x32x32x!out>
+!C_size = tensor<64x53248xf32>
 
 // Scale types.    M    K / 32 = Kb
-!A_scales = tensor<1024x32x!scale_ty>
-!Ain_scales = tensor<1024x32xi8>
+!A_scales = tensor<64x512x!scale_ty>
+!Ain_scales = tensor<64x512xi8>
 //                 N    K / 32 = Kb
-!B_scales = tensor<1024x32x!scale_ty>
-!Bin_scales = tensor<1024x32xi8>
+!B_scales = tensor<53248x512x!scale_ty>
+!Bin_scales = tensor<53248x512xi8>
 
 // 4 loops in this example:
 // M/N = typical M/N dimensions
